@@ -1045,12 +1045,12 @@ comment_end(Stream, #{current_token := Curr} = State) ->
    comment(Stream, State#{current_token := Tok1}).
 
 %% 8.2.4.52      
-comment_end_bang(<<$-, Rest>>, #{current_token := Curr} = State) ->
+comment_end_bang(<<$-, Rest/binary>>, #{current_token := Curr} = State) ->
    Tok = append_to_value($-, Curr),
    Tok1 = append_to_value($-, Tok),
    Tok2 = append_to_value($!, Tok1),
    comment_end_dash(Rest, State#{current_token := Tok2});
-comment_end_bang(<<$>, Rest>>, #{current_token := Curr} = State) ->
+comment_end_bang(<<$>, Rest/binary>>, #{current_token := Curr} = State) ->
    % parse error
    State1 = emit(Curr, State),
    data(Rest, State1);
@@ -1217,13 +1217,13 @@ before_doctype_public_identifier(<<_, Rest/binary>>, #{current_token := Curr} = 
    bogus_doctype(Rest, State#{current_token := Tok}).
 
 %% 8.2.4.59      
-doctype_public_identifier_double_quoted(<<$\", Rest>>, State) ->
+doctype_public_identifier_double_quoted(<<$\", Rest/binary>>, State) ->
    after_doctype_public_identifier(Rest, State);
-doctype_public_identifier_double_quoted(<<0, Rest>>, #{current_token := Curr} = State) ->
+doctype_public_identifier_double_quoted(<<0, Rest/binary>>, #{current_token := Curr} = State) ->
    % parse error
    Tok = append_to_public(16#FFFD, Curr),
    doctype_public_identifier_double_quoted(Rest, State#{current_token := Tok});
-doctype_public_identifier_double_quoted(<<$>, Rest>>, #{current_token := Curr} = State) ->
+doctype_public_identifier_double_quoted(<<$>, Rest/binary>>, #{current_token := Curr} = State) ->
    % parse error
    Tok = Curr#doctype{quirks = true},
    State1 = emit(Tok, State),
@@ -1233,10 +1233,10 @@ doctype_public_identifier_double_quoted(<<>>, #{current_token := Curr} = State) 
    Tok = Curr#doctype{quirks = true},
    State1 = emit(Tok, State),
    emit(eof, State1);
-doctype_public_identifier_double_quoted(<<$\n, Rest>>, #{current_token := Curr} = State) ->
+doctype_public_identifier_double_quoted(<<$\n, Rest/binary>>, #{current_token := Curr} = State) ->
    Tok = append_to_public($\n, Curr),
    doctype_public_identifier_double_quoted(Rest, ?i(State#{current_token := Tok}));
-doctype_public_identifier_double_quoted(<<C/utf8, Rest>>, #{current_token := Curr} = State) ->
+doctype_public_identifier_double_quoted(<<C/utf8, Rest/binary>>, #{current_token := Curr} = State) ->
    Tok = append_to_public(C, Curr),
    doctype_public_identifier_double_quoted(Rest, State#{current_token := Tok}).
 
@@ -1265,18 +1265,18 @@ doctype_public_identifier_single_quoted(<<C/utf8, Rest/binary>>, #{current_token
    doctype_public_identifier_single_quoted(Rest, State#{current_token := Tok}).
 
 %% 8.2.4.61      
-after_doctype_public_identifier(<<$\n, Rest>>, State) ->
+after_doctype_public_identifier(<<$\n, Rest/binary>>, State) ->
    between_doctype_public_and_system_identifiers(Rest, ?i(State));
-after_doctype_public_identifier(<<C, Rest>>, State) when ?ws(C) ->
+after_doctype_public_identifier(<<C, Rest/binary>>, State) when ?ws(C) ->
    between_doctype_public_and_system_identifiers(Rest, State);
-after_doctype_public_identifier(<<$>, Rest>>, #{current_token := Curr} = State) ->
+after_doctype_public_identifier(<<$>, Rest/binary>>, #{current_token := Curr} = State) ->
    State1 = emit(Curr, State),
    data(Rest, State1);
-after_doctype_public_identifier(<<$\", Rest>>, #{current_token := Curr} = State) ->
+after_doctype_public_identifier(<<$\", Rest/binary>>, #{current_token := Curr} = State) ->
    % parse error
    Tok = Curr#doctype{system = <<>>},
    doctype_system_identifier_double_quoted(Rest, State#{current_token := Tok});
-after_doctype_public_identifier(<<$', Rest>>, #{current_token := Curr} = State) ->
+after_doctype_public_identifier(<<$', Rest/binary>>, #{current_token := Curr} = State) ->
    % parse error
    Tok = Curr#doctype{system = <<>>},
    doctype_system_identifier_single_quoted(Rest, State#{current_token := Tok});
@@ -1285,7 +1285,7 @@ after_doctype_public_identifier(<<>>, #{current_token := Curr} = State) ->
    Tok = Curr#doctype{quirks = true},
    State1 = emit(Tok, State),
    emit(eof, State1);
-after_doctype_public_identifier(<<_, Rest>>, #{current_token := Curr} = State) ->
+after_doctype_public_identifier(<<_, Rest/binary>>, #{current_token := Curr} = State) ->
    % parse error
    Tok = Curr#doctype{quirks = true},
    bogus_doctype(Rest, State#{current_token := Tok}).
