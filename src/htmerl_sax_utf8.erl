@@ -2996,7 +2996,8 @@ add_html_element(#start_tag{name = N,
                {U, P, L} = adjust_att_name({html, AName}),
                {U, P, u(L), AValue}
             end 
-           || #attribute{name = AName, value = AValue} <- Atts],
+           || #attribute{name = AName, value = AValue} <- Atts,
+              AName =/= <<"xmlns">>],
    U = u(N),
    Elem = {startElement, ?HTML, U, {<<>>, U}, Atts1},
    State2 = send_event(Elem, State1),
@@ -3016,7 +3017,8 @@ add_math_element(#start_tag{name = N,
                {U, P, L} = adjust_att_name({mathml, AName}),
                {U, P, u(L), AValue}
             end 
-           || #attribute{name = AName, value = AValue} <- Atts],
+           || #attribute{name = AName, value = AValue} <- Atts,
+              AName =/= <<"xmlns">>],
    U = u(N),
    Elem = {startElement, ?MATH, U, {<<>>, U}, Atts1},
    State2 = send_event(Elem, State1),
@@ -3036,7 +3038,8 @@ add_svg_element(#start_tag{name = N,
                {U, P, L} = adjust_att_name({svg, AName}),
                {U, P, L, AValue}
             end 
-           || #attribute{name = AName, value = AValue} <- Atts],
+           || #attribute{name = AName, value = AValue} <- Atts,
+              AName =/= <<"xmlns">>],
    Elem = {startElement, ?SVG, N, {<<>>, N}, Atts1},
    State2 = send_event(Elem, State1),
    case Closing of
