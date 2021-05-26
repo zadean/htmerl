@@ -68,7 +68,16 @@ string(Bin, Options) ->
         end,
    M3 = maps:merge(default_state(), M2),
    Bin1 = norm_newlines(Bin, <<>>),
-   data(Bin1, M3).
+   Bin2 = norm_whitespaces(Bin1),
+   data(Bin2, M3).
+
+norm_whitespaces(Bin) ->
+   Splitted = binary:split(Bin, [<<"\n">>, <<" ">>, <<"\t">>], [global, trim_all]),
+   list_to_binary(combine(Splitted, " ")).
+
+combine([], _) -> "" ;
+combine([Head|Tail], Space) -> 
+   binary_to_list(Head) ++ Space ++ combine(Tail, Space).
 
 norm_newlines(Bin, _) ->
    binary:replace(Bin, [<<$\r,$\n>>, <<$\r>>], <<$\n>>, [global]).
