@@ -68,8 +68,7 @@ string(Bin, Options) ->
         end,
    M3 = maps:merge(default_state(), M2),
    Bin1 = norm_newlines(Bin, <<>>),
-   Bin2 = norm_whitespaces(Bin1),
-   data(Bin2, M3).
+   data(Bin1, M3).
 
 norm_whitespaces(Bin) ->
    Splitted = binary:split(Bin, [<<"\n">>, <<" ">>, <<"\t">>], [global, trim_all]),
@@ -2994,9 +2993,17 @@ add_text_chars(C, #{text_node_buff := Buff} = State) ->
 maybe_pop_text(#{text_node_buff := undefined} = State) ->
    State;
 maybe_pop_text(#{text_node_buff := Buff} = State) ->
-   Event = {characters, u(Buff)},
-   State1 = send_event(Event, State),
-   State1#{text_node_buff := undefined}.
+   case maps:get(last_start_tag, State) of 
+      {start_tag, <<"pre">>, _, _} ->
+        Event = {characters, u(Buff)},
+        State1 = send_event(Event, State),
+        State1#{text_node_buff := undefined};
+      _ ->
+        Buff1 = norm_whitespaces(Buff),
+        Event = {characters, u(Buff1)},
+        State1 = send_event(Event, State),
+        State1#{text_node_buff := undefined}
+   end.
 
 add_html_element(#start_tag{name = N, 
                             attributes = Atts,
