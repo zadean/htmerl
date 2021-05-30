@@ -72,11 +72,13 @@ string(Bin, Options) ->
 
 norm_whitespaces(Bin) ->
    Splitted = binary:split(Bin, [<<"\n">>, <<" ">>, <<"\t">>], [global, trim_all]),
-   list_to_binary(combine(Splitted, " ")).
+   IOList = combine(Splitted, <<" ">>),
+   iolist_to_binary(IOList).
 
 combine([], _) -> "" ;
+combine([Last], _) -> [Last];
 combine([Head|Tail], Space) -> 
-   binary_to_list(Head) ++ Space ++ combine(Tail, Space).
+   [Head, Space, combine(Tail, Space)].
 
 norm_newlines(Bin, _) ->
    binary:replace(Bin, [<<$\r,$\n>>, <<$\r>>], <<$\n>>, [global]).
