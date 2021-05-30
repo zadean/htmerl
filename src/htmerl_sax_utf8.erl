@@ -2995,12 +2995,14 @@ add_text_chars(C, #{text_node_buff := Buff} = State) ->
 maybe_pop_text(#{text_node_buff := undefined} = State) ->
    State;
 maybe_pop_text(#{text_node_buff := Buff} = State) ->
-   case maps:get(last_start_tag, State) of 
-      {start_tag, <<"pre">>, _, _} ->
-        Event = {characters, u(Buff)},
-        State1 = send_event(Event, State),
-        State1#{text_node_buff := undefined};
-      _ ->
+   TestFun = fun(X) -> {start_tag, Y, _, _} = X, Y =:= <<"pre">> end,
+   HasPre = lists:any(TestFun, maps:get(open_elements, State)),
+   if
+      HasPre -> 
+         Event = {characters, u(Buff)},
+         State1 = send_event(Event, State),
+         State1#{text_node_buff := undefined};
+      true ->
         Buff1 = norm_whitespaces(Buff),
         Event = {characters, u(Buff1)},
         State1 = send_event(Event, State),
