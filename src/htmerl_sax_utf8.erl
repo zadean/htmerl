@@ -70,6 +70,16 @@ string(Bin, Options) ->
    Bin1 = norm_newlines(Bin, <<>>),
    data(Bin1, M3).
 
+norm_whitespaces(Bin) ->
+   Splitted = binary:split(Bin, [<<"\n">>, <<" ">>, <<"\t">>], [global, trim_all]),
+   IOList = combine(Splitted, <<" ">>),
+   iolist_to_binary(IOList).
+
+combine([], _) -> "" ;
+combine([Last], _) -> [Last];
+combine([Head|Tail], Space) -> 
+   [Head, Space, combine(Tail, Space)].
+
 norm_newlines(Bin, _) ->
    binary:replace(Bin, [<<$\r,$\n>>, <<$\r>>], <<$\n>>, [global]).
 
@@ -2985,9 +2995,19 @@ add_text_chars(C, #{text_node_buff := Buff} = State) ->
 maybe_pop_text(#{text_node_buff := undefined} = State) ->
    State;
 maybe_pop_text(#{text_node_buff := Buff} = State) ->
-   Event = {characters, u(Buff)},
-   State1 = send_event(Event, State),
-   State1#{text_node_buff := undefined}.
+   TestFun = fun(X) -> {start_tag, Y, _, _} = X, Y =:= <<"pre">> end,
+   HasPre = lists:any(TestFun, maps:get(open_elements, State)),
+   if
+      HasPre -> 
+         Event = {characters, u(Buff)},
+         State1 = send_event(Event, State),
+         State1#{text_node_buff := undefined};
+      true ->
+        Buff1 = norm_whitespaces(Buff),
+        Event = {characters, u(Buff1)},
+        State1 = send_event(Event, State),
+        State1#{text_node_buff := undefined}
+   end.
 
 add_html_element(#start_tag{name = N, 
                             attributes = Atts,
