@@ -1,14 +1,13 @@
-{application, htmerl,
- [{description, "An OTP library"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {applications,
-   [kernel,
-    stdlib
-   ]},
-  {env,[]},
-  {modules, []},
-
-  {licenses, ["Apache 2.0"]},
-  {links, []}
- ]}.
+{application, htmerl, [
+    {description, "An OTP library for parsing HTML documents"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {applications, [kernel, stdlib]},
+    {env, []},
+    {modules, []},
+    {licenses, ["Apache-2.0"]},
+    {links, [
+        {"GitHub", "https://github.com/zadean/htmerl"},
+        {"Specification", "https://www.w3.org/TR/html52/"}
+    ]}
+]}.

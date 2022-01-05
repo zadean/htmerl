@@ -1,38 +1,33 @@
 %% Attribute
--record(htmlAttribute,
-   {
-    name             :: binary(),
-    prefix    = <<>> :: binary(),
+-record(htmlAttribute, {
+    name :: binary(),
+    prefix = <<>> :: binary(),
     namespace = <<>> :: binary(),
-    value     = <<>> :: binary()
-   }).
+    value = <<>> :: binary()
+}).
 
 %% Tag
--record(htmlElement,
-   {
-    name            :: binary(),
-    namespace       :: binary(),
+-record(htmlElement, {
+    name :: binary(),
+    namespace :: binary(),
     attributes = [] :: [#htmlAttribute{}],
-    content    = []
-   }).
+    content = []
+}).
 
 %% Text
--record(htmlText,
-   {
+-record(htmlText, {
     value = <<>> :: binary(),
-    type  = text :: text | cdata
-   }).
+    type = text :: text | cdata
+}).
 
 %% Comment
--record(htmlComment,
-   {
+-record(htmlComment, {
     value = <<>> :: binary()
-   }).
+}).
 
--record(htmlDocument, 
-   {
-    name    = <<"html">>,
+-record(htmlDocument, {
+    name = <<"html">>,
     public,
     system,
     content = []
-   }).
+}).
