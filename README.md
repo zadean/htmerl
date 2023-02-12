@@ -89,6 +89,43 @@ Event: endDocument
 {ok,[],[]}
 ```
 
+or extracting values using the SAX events in a module:
+
+```erlang
+-module(htmerl_example).
+
+-export([run/0]).
+
+run() ->
+    Html =
+        <<"<html><body><p>Check</p>nothing here<p>this <b>bold garbage</b></p>g"
+          "arbage<p>out!</p></body></html>">>,
+    XPath = <<"html/body/p">>,
+    Path =
+        lists:reverse(
+            binary:split(XPath, <<"/">>, [global])),
+    Opts = [{event_fun, fun xpath/3}, {user_state, {[], Path, []}}],
+    {ok, TextList, []} = htmerl:sax(Html, Opts),
+    TextList.
+
+xpath({characters, Text}, _LineNum, {Path, Path, Acc}) ->
+    {Path, Path, [Text | Acc]};
+xpath({endElement, _Ns, Ln, _}, _LineNum, {[Ln | Path], XPath, Acc}) ->
+    {Path, XPath, Acc};
+xpath({startElement, _Ns, Ln, _, _Atts}, _LineNum, {Path, XPath, Acc}) ->
+    {[Ln | Path], XPath, Acc};
+xpath(endDocument, _LineNum, {_Path, _XPath, Acc}) ->
+    lists:reverse(Acc);
+xpath(_Event, _LineNum, State) ->
+    State.
+```
+
+```erlang
+4> htmerl_example:run().
+[<<"Check">>,<<"this">>,<<"out!">>]
+```
+
+
 Build
 -----
 
