@@ -2136,6 +2136,13 @@ dispatch(#{insertion_mode := after_head} = State, Token) ->
         #end_tag{} ->
             % parse error
             State;
+        #start_tag{} ->
+            % A tag was started without a body. Report body and the tag opened.
+            State1 = maybe_pop_text(State),
+            Token1 = #start_tag{name = <<"body">>},
+            State2 = add_html_element(Token1, State1),
+            State3 = add_html_element(Token, State2),
+            State3#{insertion_mode := in_body};
         _ ->
             State1 = maybe_pop_text(State),
             Token1 = #start_tag{name = <<"body">>},
