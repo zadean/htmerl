@@ -3,17 +3,18 @@ htmerl
 
 An OTP library for parsing HTML documents.
 
-This library attempts to follow the [HTML 5.2 specification](https://www.w3.org/TR/html52/) 
+This library attempts to follow the [HTML 5.2 specification](https://www.w3.org/TR/html52/)
 for tokenizing and parsing the HTML syntax as closely as possible.
 This means that common errors that browsers accept are also accepted here and sanitized.
 
 The output from `htmerl:sax/2` is identical to the XML SAX events produced
 by `xmerl_sax_parser` except that here all values and names are UTF-8 binary
-and not lists.  
+and not lists.
 
 Usage
 -----
-There are two ways to use `htmerl`. 
+
+There are two ways to use `htmerl`.
 Firstly, to build a tree directly from the parsed input. Notice here that the missing "head" element was added.
 
 ```erlang
@@ -30,6 +31,12 @@ Firstly, to build a tree directly from the parsed input. Notice here that the mi
 
 Secondly, as a SAX parser. Calling `htmerl:sax/1` returns a list of SAX events.
 `htmerl:sax/2` calls a user defined function.
+
+Options for `htmerl:sax/2` are as follows:
+
+- `preserve_ws`: If all text nodes, incluiding pure whitespace should be preserved (default `false`).
+- `user_state`: A term to hold any user-defined state. Will be passed to the `EventFun`.
+- `event_fun`: Arity 3 function that takes `Event`, `Postion`, `UserState` and returns the new `UserState`.
 
 ```erlang
 2> htmerl:sax(<<"<!DOCTYPE html><html><body>Hello</body></html>">>).
@@ -59,7 +66,7 @@ Secondly, as a SAX parser. Calling `htmerl:sax/1` returns a list of SAX events.
 ```
 
  or with a user defined function and state
- 
+
 ```erlang
 3> F = fun(E, _, S) -> io:format("Event: ~p~n", [E]), S end,
 Opts = [{event_fun, F}, {user_state, []}],
@@ -125,8 +132,41 @@ xpath(_Event, _LineNum, State) ->
 [<<"Check">>,<<"this">>,<<"out!">>]
 ```
 
+Preserve all whitespaces in the document body of an incomplete document:
+
+```erlang
+5> htmerl:sax(<<"<p>   Well,\t\n Hello!!   ">>, [{preserve_ws, true}]).
+{ok,[startDocument,
+     {startPrefixMapping,<<>>,<<"http://www.w3.org/1999/xhtml">>},
+     {startElement,<<"http://www.w3.org/1999/xhtml">>,<<"html">>,
+                   {<<>>,<<"html">>},
+                   []},
+     {startElement,<<"http://www.w3.org/1999/xhtml">>,<<"head">>,
+                   {<<>>,<<"head">>},
+                   []},
+     {endElement,<<"http://www.w3.org/1999/xhtml">>,<<"head">>,
+                 {<<>>,<<"head">>}},
+     {startElement,<<"http://www.w3.org/1999/xhtml">>,<<"body">>,
+                   {<<>>,<<"body">>},
+                   []},
+     {startElement,<<"http://www.w3.org/1999/xhtml">>,<<"p">>,
+                   {<<>>,<<"p">>},
+                   []},
+     {characters,<<"   Well,\t\n Hello!!   ">>},
+     {endElement,<<"http://www.w3.org/1999/xhtml">>,<<"p">>,
+                 {<<>>,<<"p">>}},
+     {endElement,<<"http://www.w3.org/1999/xhtml">>,<<"body">>,
+                 {<<>>,<<"body">>}},
+     {endElement,<<"http://www.w3.org/1999/xhtml">>,<<"html">>,
+                 {<<>>,<<"html">>}},
+     {endPrefixMapping,<<>>},
+     endDocument],
+    []}
+```
 
 Build
 -----
 
-    $ rebar3 compile
+```shell
+rebar3 compile
+```
