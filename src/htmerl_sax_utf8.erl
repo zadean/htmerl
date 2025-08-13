@@ -70,9 +70,16 @@ string(Bin, Options) ->
             V ->
                 M1#{user_event_state => V}
         end,
-    M3 = maps:merge(default_state(), M2),
+    M3 =
+        case proplists:get_value(preserve_ws, Options) of
+            true ->
+                M2#{preserve_ws => true};
+            _ ->
+                M2
+        end,
+    M4 = maps:merge(default_state(), M3),
     Bin1 = norm_newlines(Bin, <<>>),
-    data(Bin1, M3).
+    data(Bin1, M4).
 
 norm_whitespaces(Bin) ->
     Splitted = binary:split(Bin, [<<"\n">>, <<" ">>, <<"\t">>], [global, trim_all]),
@@ -121,6 +128,7 @@ default_state() ->
         last_start_tag => undefined,
         line_num => 1,
         char_ref_code => 0,
+        preserve_ws => false,
         data_stop => binary:compile_pattern([<<$&>>, <<$<>>]),
         att_dq_stop => binary:compile_pattern([<<$\">>, <<$&>>, <<0>>]),
         att_sq_stop => binary:compile_pattern([<<$'>>, <<$&>>, <<0>>]),
@@ -2136,18 +2144,11 @@ dispatch(#{insertion_mode := after_head} = State, Token) ->
         #end_tag{} ->
             % parse error
             State;
-        #start_tag{} ->
-            % A tag was started without a body. Report body and the tag opened.
-            State1 = maybe_pop_text(State),
-            Token1 = #start_tag{name = <<"body">>},
-            State2 = add_html_element(Token1, State1),
-            State3 = add_html_element(Token, State2),
-            State3#{insertion_mode := in_body};
         _ ->
-            State1 = maybe_pop_text(State),
+            % A tag was started without a body. Report body and the tag opened.
             Token1 = #start_tag{name = <<"body">>},
-            State2 = add_html_element(Token1, State1),
-            State2#{insertion_mode := in_body}
+            State1 = add_html_element(Token1, State),
+            dispatch(State1#{insertion_mode := in_body}, Token)
     end;
 %% in_body state
 dispatch(#{insertion_mode := in_body} = State, Token) ->
@@ -3475,12 +3476,12 @@ add_text_chars(C, #{text_node_buff := Buff} = State) ->
 
 maybe_pop_text(#{text_node_buff := undefined} = State) ->
     State;
-maybe_pop_text(#{text_node_buff := Buff} = State) ->
+maybe_pop_text(#{text_node_buff := Buff, preserve_ws := PreserveWS} = State) ->
     TestFun = fun(X) ->
         {start_tag, Y, _, _} = X,
         Y =:= <<"pre">>
     end,
-    HasPre = lists:any(TestFun, maps:get(open_elements, State)),
+    HasPre = PreserveWS orelse lists:any(TestFun, maps:get(open_elements, State)),
     if
         HasPre ->
             Event = {characters, u(Buff)},

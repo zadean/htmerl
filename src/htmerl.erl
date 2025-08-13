@@ -24,8 +24,11 @@ sax(Bin) ->
     htmerl_sax_utf8:string(Bin).
 
 %% Takes a UTF-8 encoded binary containing an entire HTML document and
-%% [{event_fun,  fun event/3},
-%%  {user_state, state()}]
+%% [
+%%  {event_fun,  fun event/3},
+%%  {user_state, state()},
+%%  {preserve_ws, boolean()}
+%% ]
 %% as Opts.
 %% For each SAX event, the function in event_fun will be called as follows:
 %% Fun(Event, LineNum, UserState)
