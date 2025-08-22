@@ -1,6 +1,6 @@
 {application,htmerl,
              [{description,"An OTP library for parsing HTML documents"},
-              {vsn,"0.2.0"},
+              {vsn,"0.2.1"},
               {registered,[]},
               {applications,[kernel,stdlib]},
               {env,[]},
