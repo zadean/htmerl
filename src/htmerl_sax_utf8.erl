@@ -952,8 +952,8 @@ after_attribute_name(<<>>, State) ->
     % fatal parse error
     emit(eof, State);
 after_attribute_name(Stream, #{current_token := Curr} = State) ->
-    [#attribute{name = AName} = Ca | Atts0] = Curr#start_tag.attributes,
-    Atts = [#attribute{} | [Ca#attribute{value = AName} | Atts0]],
+    % Empty attribute, leave the value empty (previous versions set the value to the attribute name).
+    Atts = [#attribute{} | Curr#start_tag.attributes],
     attribute_name(Stream, State#{current_token := Curr#start_tag{attributes = Atts}}).
 
 %% 8.2.4.35
